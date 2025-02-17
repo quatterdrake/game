@@ -1,46 +1,39 @@
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Room {
     private String name;
     private String description;
-    private Map<String, Room> connectedRooms = new HashMap<>();
-    private List<Item> items = new ArrayList<>();
+    private Map<String, Room> connections;  // Связи с другими комнатами
+    private Item item;
 
     public Room(String name, String description) {
         this.name = name;
         this.description = description;
+        this.connections = new HashMap<>();
     }
 
-    public void addItem(Item item) {
-        items.add(item);
-    }
-
-    public void removeItem(Item item) {
-        items.remove(item);
-    }
-
-    public List<Item> getItems() {
-        return items;
-    }
-
-    public void connect(String direction, Room room) {
-        connectedRooms.put(direction.toLowerCase(), room);
+    public void connectRoom(String direction, Room room) {
+        connections.put(direction, room);
     }
 
     public Room getConnectedRoom(String direction) {
-        return connectedRooms.get(direction.toLowerCase());
+        return connections.get(direction);
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public Item getItem() {
+        return item;
     }
 
     public void describe() {
         System.out.println("Room: " + name);
         System.out.println(description);
-        if (items.isEmpty()) {
-            System.out.println("No items here.");
-        } else {
-            System.out.println("Items here:");
-            for (Item item : items) {
-                System.out.println(item.getName());
-            }
+        if (item != null) {
+            System.out.println("Items here: " + item.getName());
         }
     }
 }

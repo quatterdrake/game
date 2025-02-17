@@ -1,31 +1,29 @@
 import java.util.Scanner;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
 
 public class MUDController {
     private Player player;
-    private boolean running = true;
+    private boolean running;
 
     public MUDController(Player player) {
         this.player = player;
+        this.running = true;
     }
 
     public void runGameLoop() {
         Scanner scanner = new Scanner(System.in);
         while (running) {
-            System.out.print("Enter command: ");
+            System.out.print("> ");
             String input = scanner.nextLine();
             handleInput(input);
         }
     }
 
-    public void handleInput(String input) {
-        String[] commandParts = input.split(" ");
-        String command = commandParts[0];
-        String argument = (commandParts.length > 1) ? commandParts[1] : null;
+    private void handleInput(String input) {
+        String[] parts = input.split(" ", 2);
+        String command = parts[0].toLowerCase();
+        String argument = parts.length > 1 ? parts[1] : "";
 
-        switch (command.toLowerCase()) {
+        switch (command) {
             case "look":
                 lookAround();
                 break;
@@ -38,12 +36,13 @@ public class MUDController {
             case "inventory":
                 player.showInventory();
                 break;
-            case "help":
-                showHelp();
-                break;
             case "quit":
             case "exit":
                 running = false;
+                System.out.println("Exiting game.");
+                break;
+            case "help":
+                showHelp();
                 break;
             default:
                 System.out.println("Unknown command.");
@@ -56,45 +55,32 @@ public class MUDController {
     }
 
     private void move(String direction) {
-        if (direction == null || direction.isEmpty()) {
-            System.out.println("You need to specify a direction.");
-            return;
-        }
-
         Room nextRoom = player.getCurrentRoom().getConnectedRoom(direction);
         if (nextRoom != null) {
             player.setCurrentRoom(nextRoom);
-            System.out.println("You moved " + direction);
+            System.out.println("You move " + direction + " to the " + nextRoom.getName());
         } else {
             System.out.println("You can't go that way!");
         }
     }
 
     private void pickUp(String itemName) {
-        if (itemName == null || itemName.isEmpty()) {
-            System.out.println("You need to specify an item to pick up.");
-            return;
+        Item item = player.getCurrentRoom().getItem();
+        if (item != null && item.getName().equalsIgnoreCase(itemName)) {
+            player.addItemToInventory(item);
+            player.getCurrentRoom().setItem(null);  // Убираем предмет из комнаты
+            System.out.println("You pick up the " + item.getName());
+        } else {
+            System.out.println("No item named " + itemName + " here!");
         }
-
-        List<Item> itemsInRoom = player.getCurrentRoom().getItems();
-        for (Item item : itemsInRoom) {
-            if (item.getName().equalsIgnoreCase(itemName)) {
-                player.getCurrentRoom().removeItem(item);
-                player.addItem(item);
-                System.out.println("You picked up the " + itemName);
-                return;
-            }
-        }
-        System.out.println("No item named " + itemName + " here!");
     }
 
     private void showHelp() {
         System.out.println("Available commands:");
-        System.out.println("look - Describes the current room.");
-        System.out.println("move <forward|back|left|right> - Moves the player in the specified direction.");
-        System.out.println("pick up <itemName> - Picks up an item from the room.");
-        System.out.println("inventory - Lists the items the player is carrying.");
-        System.out.println("help - Displays this help information.");
-        System.out.println("quit/exit - Ends the game.");
+        System.out.println("look - Look around the current room.");
+        System.out.println("move <direction> - Move in the specified direction.");
+        System.out.println("pick up <item> - Pick up an item from the room.");
+        System.out.println("inventory - Show your inventory.");
+        System.out.println("quit/exit - Exit the game.");
     }
 }
